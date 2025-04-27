@@ -1,7 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
-import path from 'path';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -10,32 +9,39 @@ export default defineConfig({
     viteStaticCopy({
       targets: [
         {
-          src: 'node_modules/pdfjs-dist/build/pdf.worker.min.mjs',
-          dest: 'assets'
+          src: 'api/*',
+          dest: 'api'
         }
       ]
     })
   ],
   optimizeDeps: {
-    include: ['lucide-react'],
-    exclude: []
-  },
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src')
-    }
-  },
-  server: {
-    port: 5174,
-    host: true,
-    strictPort: true,
-    open: true
+    include: ['@react-email/render']
   },
   build: {
     outDir: 'dist',
-    sourcemap: true,
-    commonjsOptions: {
-      include: [/lucide-react/, /node_modules/]
+    assetsDir: 'assets',
+    rollupOptions: {
+      input: {
+        main: './index.html',
+        'send-swap-email': './api/send-swap-email.js',
+        'send-swap-notification': './api/send-swap-notification.js'
+      },
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          email: ['@react-email/render', '@react-email/components']
+        }
+      }
+    }
+  },
+  server: {
+    port: 8080,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true
+      }
     }
   }
 });
