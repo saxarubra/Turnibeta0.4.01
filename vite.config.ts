@@ -23,9 +23,7 @@ export default defineConfig({
     assetsDir: 'assets',
     rollupOptions: {
       input: {
-        main: './index.html',
-        'send-swap-email': './api/send-swap-email.js',
-        'send-swap-notification': './api/send-swap-notification.js'
+        main: './index.html'
       },
       output: {
         manualChunks: {
