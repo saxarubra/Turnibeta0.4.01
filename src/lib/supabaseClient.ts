@@ -7,15 +7,13 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+// Creo una singola istanza del client
+const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
+    storageKey: 'turni-app-storage',
     autoRefreshToken: true,
-    detectSessionInUrl: true
   },
-  realtime: {
-    params: {
-      eventsPerSecond: 10
-    }
-  }
 });
+
+export default supabase; 

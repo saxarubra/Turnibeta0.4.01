@@ -1,20 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import Login from './components/auth/Login';
-import Register from './components/auth/Register';
-import ShiftList from './components/shifts/ShiftList';
-import { SwapsPage } from './components/shifts/SwapsPage';
-import TopBar from './components/layout/TopBar';
-import './App.css';
 import { LoginForm } from './components/auth/LoginForm';
 import { SignUpForm } from './components/auth/SignUpForm';
 import { PasswordResetForm } from './components/auth/PasswordResetForm';
 import { MatrixUploader } from './components/shifts/MatrixUploader';
-import { LogOut, User, RefreshCw, ArrowLeftRight } from './lib/icons';
+import { LogOut, User, RefreshCw, ArrowLeftRight, Mail, X } from 'lucide-react';
 import { supabase } from './lib/supabase';
 import Notifications from './components/Notifications';
 import { AdminSetup } from './components/admin/AdminSetup';
+import { EmailTest } from './components/EmailTest';
+import ShiftList from './components/shifts/ShiftList';
+import { SwapsPage } from './components/shifts/SwapsPage';
+import EmailPage from './pages/EmailPage';
 
 export default function App() {
   const { user, loading, signOut } = useAuth();
@@ -24,6 +22,7 @@ export default function App() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showSwapsPage, setShowSwapsPage] = useState(false);
+  const [showEmailTest, setShowEmailTest] = useState(false);
 
   useEffect(() => {
     checkAdminStatus();
@@ -88,8 +87,8 @@ export default function App() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+      <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
+        <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md mb-8">
           {showPasswordReset ? (
             <PasswordResetForm onBack={() => setShowPasswordReset(false)} />
           ) : (
@@ -109,6 +108,11 @@ export default function App() {
               </div>
             </>
           )}
+        </div>
+        
+        <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+          <h2 className="text-2xl font-bold mb-6 text-center">Email Test</h2>
+          <EmailTest />
         </div>
       </div>
     );
@@ -148,94 +152,131 @@ export default function App() {
               </button>
               <div className="flex items-center space-x-2 px-3 py-2 bg-indigo-50 rounded-md">
                 <User className="h-4 w-4 text-indigo-500" />
-                <span className="text-sm font-medium text-indigo-700">{user.user_metadata.full_name}</span>
+                <span className="text-sm font-medium text-indigo-700">{user.name}</span>
               </div>
               {isAdmin && (
-                <button
-                  onClick={async () => {
-                    if (!confirm('Sei sicuro di voler resettare il database? Questa azione cancellerà tutti i turni, gli scambi e le notifiche.')) {
-                      return;
-                    }
-                    try {
-                      console.log('Iniziando il reset del database...');
-                      console.log('User ID:', user?.id);
-                      console.log('Is Admin:', isAdmin);
+                <>
+                  <button
+                    onClick={() => setShowEmailTest(true)}
+                    className="flex items-center space-x-2 px-3 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                  >
+                    <Mail className="h-4 w-4" />
+                    <span>Test Email</span>
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (!confirm('Sei sicuro di voler resettare il database? Questa azione cancellerà tutti i turni, gli scambi e le notifiche.')) {
+                        return;
+                      }
+                      try {
+                        console.log('Iniziando il reset del database...');
+                        console.log('User ID:', user?.id);
+                        console.log('Is Admin:', isAdmin);
 
-                      // Cancella tutti i dati dalla tabella shifts_schedule
-                      const { error: shiftsError } = await supabase
-                        .from('shifts_schedule')
-                        .delete()
-                        .neq('id', '00000000-0000-0000-0000-000000000000');
+                        // Cancella tutti i dati dalla tabella shifts_schedule
+                        const { error: shiftsError } = await supabase
+                          .from('shifts_schedule')
+                          .delete()
+                          .neq('id', '00000000-0000-0000-0000-000000000000');
 
-                      console.log('Risultato delete shifts:', { error: shiftsError });
-                      if (shiftsError) throw shiftsError;
+                        console.log('Risultato delete shifts:', { error: shiftsError });
+                        if (shiftsError) throw shiftsError;
 
-                      // Cancella tutti i dati dalla tabella shift_swaps
-                      const { error: swapsError } = await supabase
-                        .from('shift_swaps')
-                        .delete()
-                        .neq('id', '00000000-0000-0000-0000-000000000000');
+                        // Cancella tutti i dati dalla tabella shift_swaps
+                        const { error: swapsError } = await supabase
+                          .from('shift_swaps')
+                          .delete()
+                          .neq('id', '00000000-0000-0000-0000-000000000000');
 
-                      console.log('Risultato delete swaps:', { error: swapsError });
-                      if (swapsError) throw swapsError;
+                        console.log('Risultato delete swaps:', { error: swapsError });
+                        if (swapsError) throw swapsError;
 
-                      // Cancella tutti i dati dalla tabella notifications
-                      const { error: notificationsError } = await supabase
-                        .from('notifications')
-                        .delete()
-                        .neq('id', '00000000-0000-0000-0000-000000000000');
+                        // Cancella tutti i dati dalla tabella notifications
+                        const { error: notificationsError } = await supabase
+                          .from('notifications')
+                          .delete()
+                          .neq('id', '00000000-0000-0000-0000-000000000000');
 
-                      console.log('Risultato delete notifications:', { error: notificationsError });
-                      if (notificationsError) throw notificationsError;
+                        console.log('Risultato delete notifications:', { error: notificationsError });
+                        if (notificationsError) throw notificationsError;
 
-                      alert('Database resettato con successo!');
-                      window.location.reload();
-                    } catch (err) {
-                      console.error('Error resetting database:', err);
-                      alert('Errore durante il reset del database: ' + (err as Error).message);
-                    }
-                  }}
-                  className="flex items-center space-x-2 px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
-                >
-                  <RefreshCw className="h-4 w-4" />
-                  <span>Reset DB</span>
-                </button>
+                        alert('Database resettato con successo!');
+                      } catch (err) {
+                        console.error('Errore durante il reset del database:', err);
+                        alert('Errore durante il reset del database. Controlla la console per i dettagli.');
+                      }
+                    }}
+                    className="flex items-center space-x-2 px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                    <span>Reset Database</span>
+                  </button>
+                </>
               )}
               <button
-                onClick={() => signOut()}
-                className="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                onClick={signOut}
+                className="flex items-center space-x-2 px-3 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
               >
                 <LogOut className="h-4 w-4" />
-                <span>Sign Out</span>
+                <span>Logout</span>
               </button>
             </div>
           </div>
         </div>
       </header>
-      {error && (
-        <div className="max-w-7xl mx-auto px-4 py-2">
-          <div className="bg-red-50 text-red-700 p-4 rounded-md mt-4">
-            {error}
+
+      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        {showSwapsPage ? (
+          <div className="bg-white shadow rounded-lg p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-semibold">Gestione Scambi Turno</h2>
+              <button
+                onClick={() => setShowSwapsPage(false)}
+                className="flex items-center space-x-2 px-3 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
+              >
+                <X className="h-4 w-4" />
+                <span>Chiudi</span>
+              </button>
+            </div>
+            <SwapsPage />
           </div>
-        </div>
-      )}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mt-6">
-          {isAdmin && !showMatrix ? (
-            <MatrixUploader onUploadComplete={handleUploadSuccess} />
-          ) : (
-            <ShiftList initialDate={currentWeekStart} />
-          )}
-        </div>
-        {user && (
-          <div className="mt-8">
-            <AdminSetup />
+        ) : showEmailTest ? (
+          <div className="bg-white shadow rounded-lg p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-semibold">Test Email</h2>
+              <button
+                onClick={() => setShowEmailTest(false)}
+                className="flex items-center space-x-2 px-3 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
+              >
+                <X className="h-4 w-4" />
+                <span>Chiudi</span>
+              </button>
+            </div>
+            <EmailTest />
           </div>
-        )}
+        ) : showMatrix ? (
+          <div className="bg-white shadow rounded-lg p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-semibold">Gestione Turni</h2>
+              {isAdmin && (
+                <button
+                  onClick={() => setShowMatrix(false)}
+                  className="flex items-center space-x-2 px-3 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  <span>Carica Nuova Matrice</span>
+                </button>
+              )}
+            </div>
+            <ShiftList weekStartDate={currentWeekStart} />
+          </div>
+        ) : isAdmin ? (
+          <div className="bg-white shadow rounded-lg p-6">
+            <h2 className="text-xl font-semibold mb-6">Carica Matrice Turni</h2>
+            <MatrixUploader onUploadSuccess={handleUploadSuccess} />
+          </div>
+        ) : null}
       </main>
-      {showSwapsPage && (
-        <SwapsPage onClose={() => setShowSwapsPage(false)} />
-      )}
     </div>
   );
 }

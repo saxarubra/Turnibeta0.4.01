@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #333;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #dff0d8;
+            color: #3c763d;
+            border: 1px solid #d6e9c6;
+        }
+        .error {
+            background-color: #f2dede;
+            color: #a94442;
+            border: 1px solid #ebccd1;
+        }
+    </style>
+</head>
+<body>
+    <h1>API Test Page</h1>
+    
+    <div class="card">
+        <h2>Health Check</h2>
+        <button id="health-check-btn">Check Health</button>
+        <div id="health-result" class="status" style="display: none;"></div>
+    </div>
+    
+    <div class="card">
+        <h2>Send Test Email</h2>
+        <button id="send-email-btn">Send Test Email</button>
+        <div id="email-result" class="status" style="display: none;"></div>
+    </div>
+    
+    <div class="card">
+        <h2>Console Log</h2>
+        <pre id="console-log"></pre>
+    </div>
+
+    <script>
+        // Function to log to the console and the page
+        function log(message, isError = false) {
+            const consoleLog = document.getElementById('console-log');
+            const timestamp = new Date().toISOString();
+            const logEntry = document.createElement('div');
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            if (isError) {
+                logEntry.style.color = 'red';
+            }
+            consoleLog.appendChild(logEntry);
+            consoleLog.scrollTop = consoleLog.scrollHeight;
+            
+            // Also log to browser console
+            if (isError) {
+                console.error(message);
+            } else {
+                console.log(message);
+            }
+        }
+
+        // Health check function
+        async function checkHealth() {
+            const healthResult = document.getElementById('health-result');
+            const healthCheckBtn = document.getElementById('health-check-btn');
+            
+            healthCheckBtn.disabled = true;
+            healthResult.style.display = 'none';
+            
+            try {
+                log('Checking API health...');
+                const response = await fetch('/api/health');
+                const data = await response.json();
+                
+                log(`Health check response: ${JSON.stringify(data)}`);
+                
+                healthResult.textContent = `Health check successful: ${JSON.stringify(data)}`;
+                healthResult.className = 'status success';
+                healthResult.style.display = 'block';
+            } catch (error) {
+                log(`Health check failed: ${error.message}`, true);
+                
+                healthResult.textContent = `Health check failed: ${error.message}`;
+                healthResult.className = 'status error';
+                healthResult.style.display = 'block';
+            } finally {
+                healthCheckBtn.disabled = false;
+            }
+        }
+
+        // Send test email function
+        async function sendTestEmail() {
+            const emailResult = document.getElementById('email-result');
+            const sendEmailBtn = document.getElementById('send-email-btn');
+            
+            sendEmailBtn.disabled = true;
+            emailResult.style.display = 'none';
+            
+            try {
+                log('Sending test email...');
+                const response = await fetch('/api/send-email', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        to: 'test@example.com',
+                        subject: 'Test Email',
+                        html: '<p>This is a test email sent from the API test page.</p>'
+                    }),
+                });
+                
+                log(`Email API response status: ${response.status}`);
+                
+                let data;
+                try {
+                    data = await response.json();
+                    log(`Email API response data: ${JSON.stringify(data)}`);
+                } catch (e) {
+                    log(`Failed to parse response: ${e.message}`, true);
+                    throw new Error('Invalid JSON response from server');
+                }
+                
+                if (response.ok) {
+                    emailResult.textContent = `Email sent successfully: ${JSON.stringify(data)}`;
+                    emailResult.className = 'status success';
+                } else {
+                    emailResult.textContent = `Failed to send email: ${data.error || 'Unknown error'}`;
+                    emailResult.className = 'status error';
+                }
+                emailResult.style.display = 'block';
+            } catch (error) {
+                log(`Email API error: ${error.message}`, true);
+                
+                emailResult.textContent = `Error: ${error.message}`;
+                emailResult.className = 'status error';
+                emailResult.style.display = 'block';
+            } finally {
+                sendEmailBtn.disabled = false;
+            }
+        }
+
+        // Initialize event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('health-check-btn').addEventListener('click', checkHealth);
+            document.getElementById('send-email-btn').addEventListener('click', sendTestEmail);
+            
+            log('API test page loaded');
+        });
+    </script>
+</body>
+</html> 

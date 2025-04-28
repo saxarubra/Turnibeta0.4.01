@@ -14,8 +14,8 @@ export async function sendSwapRequestEmail(data: SwapRequestEmailData) {
   try {
     console.log('Iniziando invio email con dati:', data);
     
-    // Per sviluppo locale, usa localhost:5173
-    const baseUrl = 'http://localhost:5173';
+    // Usa l'URL corrente invece di localhost
+    const baseUrl = window.location.origin;
     console.log('Base URL:', baseUrl);
 
     // Renderizza il template email
@@ -31,8 +31,8 @@ export async function sendSwapRequestEmail(data: SwapRequestEmailData) {
     );
     console.log('Email template renderizzato');
 
-    // Invia l'email tramite la serverless function
-    const response = await fetch('/api/send-swap-email', {
+    // Invia l'email usando Resend tramite una funzione serverless
+    const response = await fetch('/api/send-email', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -45,7 +45,8 @@ export async function sendSwapRequestEmail(data: SwapRequestEmailData) {
     });
 
     if (!response.ok) {
-      throw new Error(`Errore nell'invio dell'email: ${response.statusText}`);
+      const error = await response.json();
+      throw new Error(`Errore nell'invio dell'email: ${error.message}`);
     }
 
     console.log('Email inviata con successo');
