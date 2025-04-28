@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Direct Resend API Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    .container {
+      background-color: #f5f5f5;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    h1 {
+      color: #333;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin: 4px 2px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+    .result {
+      margin-top: 20px;
+      padding: 10px;
+      border-radius: 4px;
+    }
+    .success {
+      background-color: #dff0d8;
+      color: #3c763d;
+    }
+    .error {
+      background-color: #f2dede;
+      color: #a94442;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    textarea {
+      height: 100px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Direct Resend API Test</h1>
+  
+  <div class="container">
+    <h2>Send Email Directly via Resend API</h2>
+    <p>This form sends an email directly to the Resend API without going through our server.</p>
+    
+    <div class="form-group">
+      <label for="to">To:</label>
+      <input type="email" id="to" value="test@example.com" required>
+    </div>
+    
+    <div class="form-group">
+      <label for="subject">Subject:</label>
+      <input type="text" id="subject" value="Test Email from Direct API" required>
+    </div>
+    
+    <div class="form-group">
+      <label for="message">Message:</label>
+      <textarea id="message" required>This is a test email sent directly from the Resend API.</textarea>
+    </div>
+    
+    <button id="sendEmailBtn">Send Email</button>
+    <div id="emailResult" class="result" style="display: none;"></div>
+  </div>
+
+  <script>
+    document.getElementById('sendEmailBtn').addEventListener('click', async () => {
+      const button = document.getElementById('sendEmailBtn');
+      const resultDiv = document.getElementById('emailResult');
+      const to = document.getElementById('to').value;
+      const subject = document.getElementById('subject').value;
+      const message = document.getElementById('message').value;
+      
+      button.disabled = true;
+      button.textContent = 'Sending...';
+      resultDiv.style.display = 'none';
+      
+      try {
+        // Using Resend API directly
+        const response = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer re_ATG23HjR_3snyGw8ZhXMdN6DaZ4PkkRg5'
+          },
+          body: JSON.stringify({
+            from: 'notifications@resend.dev',
+            to: to,
+            subject: subject,
+            html: `<p>${message}</p>`
+          }),
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          resultDiv.textContent = 'Email sent successfully!';
+          resultDiv.className = 'result success';
+        } else {
+          resultDiv.textContent = `Error: ${data.message || 'Unknown error'}`;
+          resultDiv.className = 'result error';
+        }
+        
+        resultDiv.style.display = 'block';
+        console.log('API response:', data);
+      } catch (error) {
+        resultDiv.textContent = `Error: ${error.message}`;
+        resultDiv.className = 'result error';
+        resultDiv.style.display = 'block';
+        
+        console.error('Error sending email:', error);
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Send Email';
+      }
+    });
+  </script>
+</body>
+</html> 

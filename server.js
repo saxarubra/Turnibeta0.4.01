@@ -1,7 +1,7 @@
-"use strict";
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import emailRouter from './api/send-email.js';
@@ -10,7 +10,7 @@ import emailRouter from './api/send-email.js';
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __dirname = dirname(__filename);
 
 const app = express();
 const PORT = process.env.VITE_PORT || 8080;
@@ -34,8 +34,9 @@ app.use((req, res, next) => {
 // API Routes
 app.use('/api', emailRouter);
 
+// Health check endpoint
 app.get('/api/health', (req, res) => {
-    console.log('Health check endpoint called');
+    console.log('Health check requested');
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 

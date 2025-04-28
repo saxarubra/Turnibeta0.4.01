@@ -12,12 +12,16 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   error: string | null;
+  signIn: (email: string, password: string) => Promise<void>;
+  signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
-  error: null
+  error: null,
+  signIn: async () => {},
+  signOut: async () => {}
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -26,6 +30,61 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Funzione per l'accesso
+  const signIn = async (email: string, password: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+      
+      if (signInError) throw signInError;
+      
+      if (data.user) {
+        // Recupera i dati aggiuntivi dell'utente
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', data.user.id)
+          .single();
+
+        if (userError) throw userError;
+
+        setUser({
+          id: data.user.id,
+          email: data.user.email || '',
+          name: userData.name || '',
+          lp: userData.lp || ''
+        });
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Errore di autenticazione');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Funzione per il logout
+  const signOut = async () => {
+    try {
+      setLoading(true);
+      const { error: signOutError } = await supabase.auth.signOut();
+      
+      if (signOutError) throw signOutError;
+      
+      setUser(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Errore durante il logout');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     // Controlla lo stato di autenticazione iniziale
@@ -92,7 +151,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, error }}>
+    <AuthContext.Provider value={{ user, loading, error, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );

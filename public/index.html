@@ -6,34 +6,35 @@
     <title>Turni Beta</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
+            line-height: 1.6;
             text-align: center;
+        }
+        .card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
         }
         h1 {
             color: #333;
         }
-        .card {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
         .button {
             display: inline-block;
-            background-color: #4CAF50;
+            background: #007bff;
             color: white;
-            padding: 10px 20px;
             text-decoration: none;
+            padding: 10px 20px;
             border-radius: 4px;
             margin: 10px;
-            transition: background-color 0.3s;
+            transition: background 0.3s;
         }
         .button:hover {
-            background-color: #45a049;
+            background: #0056b3;
         }
     </style>
 </head>
@@ -42,15 +43,15 @@
     
     <div class="card">
         <h2>Test Pages</h2>
-        <p>Select a test page to verify functionality:</p>
-        <a href="/test-api.html" class="button">API Test</a>
-        <a href="/test-email.html" class="button">Email Test</a>
+        <p>Use these pages to test the API functionality:</p>
+        <a href="/test-api.html" class="button">Test API</a>
+        <a href="/test-email.html" class="button">Test Email</a>
     </div>
     
     <div class="card">
         <h2>Main Application</h2>
-        <p>The main application is currently loading. If it doesn't load within a few seconds, please try the test pages above.</p>
-        <p>If you're still experiencing issues, please contact support.</p>
+        <p>The main application is loading. If you continue to experience issues, please try the test pages above.</p>
+        <p>If problems persist, contact support.</p>
     </div>
 </body>
 </html> 
